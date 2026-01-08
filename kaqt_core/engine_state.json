@@ -1,0 +1,11 @@
+{
+  "engine_active": true,
+  "in_position": false,
+  "symbol": "QQQ",
+  "last_target_weight": 0.0,
+  "last_run_date": null,
+  "start_of_day_equity": 100000.0,
+  "kill_switch_triggered": false,
+  "kill_switch_reason": "",
+  "next_run_local": "2026-01-07 09:35"
+}

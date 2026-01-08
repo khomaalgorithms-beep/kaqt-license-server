@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>KAQT Activation</title>
+  <style>
+    body {
+      margin:0; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial;
+      background: #0b1220; color: #e9eefc;
+      display:flex; align-items:center; justify-content:center; height:100vh;
+    }
+    .card {
+      width: 720px; max-width: 92vw;
+      background: rgba(18, 28, 48, 0.92);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.55);
+    }
+    h1 { margin:0 0 6px 0; font-size: 26px; }
+    p { margin: 0 0 18px 0; opacity: 0.85; }
+    label { display:block; margin: 14px 0 8px; opacity: 0.85; }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(9, 14, 26, 0.75);
+      color: #e9eefc;
+      outline:none;
+      font-size: 15px;
+    }
+    .row { display:flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    button {
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(70, 120, 255, 0.20);
+      color: #e9eefc;
+      cursor:pointer;
+      font-weight: 600;
+    }
+    button.primary {
+      background: linear-gradient(135deg, #53d1ff 0%, #5b7cff 100%);
+      border: none;
+      color: #071021;
+    }
+    button:disabled { opacity: 0.55; cursor:not-allowed; }
+    .device {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(9, 14, 26, 0.55);
+      display:flex; justify-content: space-between; align-items:center; gap: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono";
+      font-size: 13px;
+    }
+    .err {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 90, 90, 0.35);
+      background: rgba(255, 90, 90, 0.10);
+      color: #ffd7d7;
+      display:none;
+      white-space: pre-wrap;
+    }
+    .ok {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(60, 220, 140, 0.35);
+      background: rgba(60, 220, 140, 0.10);
+      color: #d9ffef;
+      display:none;
+      white-space: pre-wrap;
+    }
+    .tiny { margin-top: 10px; opacity: 0.7; font-size: 12px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>KAQT Activation</h1>
+    <p>Enter your license key to unlock the KAQT trading dashboard.</p>
+
+    <label>License Key</label>
+    <input id="key" placeholder="XXXX-XXXX-XXXX" autocomplete="off"/>
+
+    <div class="row">
+      <button class="primary" id="btnActivate">Activate</button>
+      <button id="btnCopy">Copy Device ID</button>
+    </div>
+
+    <div class="device">
+      <div>Device ID: <span id="deviceId">Loading…</span></div>
+      <div id="copyStatus" style="opacity:.7"></div>
+    </div>
+
+    <div class="err" id="errBox"></div>
+    <div class="ok" id="okBox"></div>
+
+    <div class="tiny">
+      If activation fails, send us your <b>Device ID</b>. Each key is locked to one device.
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function showErr(msg) {
+    $("okBox").style.display = "none";
+    $("errBox").style.display = "block";
+    $("errBox").textContent = msg || "Activation failed.";
+  }
+
+  function showOk(msg) {
+    $("errBox").style.display = "none";
+    $("okBox").style.display = "block";
+    $("okBox").textContent = msg || "Activated.";
+  }
+
+  async function refreshDeviceId() {
+    try {
+      const res = await window.pywebview.api.get_device_id();
+      $("deviceId").textContent = res.device_id || "UNKNOWN";
+    } catch (e) {
+      $("deviceId").textContent = "UNKNOWN";
+    }
+  }
+
+  async function activate() {
+    $("btnActivate").disabled = true;
+    $("copyStatus").textContent = "";
+    $("errBox").style.display = "none";
+    $("okBox").style.display = "none";
+
+    const key = $("key").value.trim();
+    try {
+      const res = await window.pywebview.api.activate_license(key);
+
+      // Always show Device ID (even on error)
+      if (res.device_id) $("deviceId").textContent = res.device_id;
+
+      if (res.ok && res.activated) {
+        showOk(res.message || "Activation successful. Loading dashboard…");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 700);
+      } else {
+        showErr(res.message || "Activation failed. Copy your Device ID and send to support.");
+      }
+    } catch (e) {
+      showErr("Activation failed. Copy your Device ID and send to support.\n\n" + e);
+    } finally {
+      $("btnActivate").disabled = false;
+    }
+  }
+
+  async function copyDeviceId() {
+    const id = $("deviceId").textContent.trim();
+    if (!id || id === "Loading…") return;
+
+    try {
+      await navigator.clipboard.writeText(id);
+      $("copyStatus").textContent = "Copied ✅";
+      setTimeout(() => $("copyStatus").textContent = "", 1200);
+    } catch (e) {
+      $("copyStatus").textContent = "Copy failed";
+      setTimeout(() => $("copyStatus").textContent = "", 1200);
+    }
+  }
+
+  $("btnActivate").addEventListener("click", activate);
+  $("btnCopy").addEventListener("click", copyDeviceId);
+
+  refreshDeviceId();
+</script>
+</body>
+</html>

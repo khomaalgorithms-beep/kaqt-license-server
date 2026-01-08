@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>KAQT — KhomaAlgorithms Quantitative Trading</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">K</div>
+      <div class="brand-text">
+        <div class="brand-name">KaQT</div>
+        <div class="brand-sub">KhomaAlgorithms Quantitative Trading</div>
+      </div>
+    </div>
+
+    <div class="top-metrics">
+      <div class="metric">
+        <div class="metric-label">Cash Only</div>
+        <div class="metric-value" id="top-cash">$0</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Equity</div>
+        <div class="metric-value" id="top-equity">$0</div>
+        <div class="metric-sub" id="top-equity-pct">—</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Last Decision</div>
+        <div class="metric-value" id="top-last-decision">—</div>
+      </div>
+
+      <div class="metric metric-engine">
+        <div class="metric-label">Engine</div>
+        <div class="metric-value">
+          <span class="dot" id="engine-dot"></span>
+          <span id="top-engine">INACTIVE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn ghost" id="btn-refresh">Refresh</button>
+      <button class="btn" id="btn-logout">Logout</button>
+    </div>
+  </header>
+
+  <!-- LAYOUT -->
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <nav class="nav">
+        <button class="nav-item active" data-section="dashboard">
+          <span class="nav-ico">▦</span><span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-section="portfolio">
+          <span class="nav-ico">▤</span><span>Portfolio</span>
+        </button>
+        <button class="nav-item" data-section="connections">
+          <span class="nav-ico">⛓</span><span>Connections</span>
+        </button>
+        <button class="nav-item" data-section="engine">
+          <span class="nav-ico">⟲</span><span>Engine Control</span>
+        </button>
+        <button class="nav-item" data-section="settings">
+          <span class="nav-ico">⚙</span><span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="small-muted">© KAQT</div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- SECTION: DASHBOARD -->
+      <section id="section-dashboard" class="section">
+        <div class="page-title">KhomaAlgorithms Quantitative Trading</div>
+
+        <div class="grid">
+          <!-- Equity Curve -->
+          <div class="card span-2">
+            <div class="card-header">
+              <div class="card-title">Equity Curve</div>
+              <div class="card-sub" id="equity-sub">Live account curve</div>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrap">
+                <canvas id="equity-canvas" height="220"></canvas>
+              </div>
+              <div class="mini-stats">
+                <div class="mini">
+                  <div class="mini-label">Return</div>
+                  <div class="mini-value" id="mini-return">—</div>
+                </div>
+                <div class="mini">
+                  <div class="mini-label">Max Drawdown</div>
+                  <div class="mini-value" id="mini-mdd">—</div>
+                </div>
+                <div class="mini">
+                  <div class="mini-label">Exposure</div>
+                  <div class="mini-value" id="mini-exposure">—</div>
+                </div>
+                <div class="mini">
+                  <div class="mini-label">Symbol</div>
+                  <div class="mini-value" id="mini-symbol">QQQ</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current Position -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Current Position</div>
+              <div class="card-sub" id="pos-sub">Live account position</div>
+            </div>
+            <div class="card-body">
+              <div class="kv">
+                <div class="kv-row">
+                  <div class="kv-key">Symbol</div>
+                  <div class="kv-val" id="pos-symbol">—</div>
+                </div>
+                <div class="kv-row">
+                  <div class="kv-key">Size</div>
+                  <div class="kv-val" id="pos-size">—</div>
+                </div>
+                <div class="kv-row">
+                  <div class="kv-key">Avg Price</div>
+                  <div class="kv-val" id="pos-avg">—</div>
+                </div>
+                <div class="kv-row">
+                  <div class="kv-key">Exposure</div>
+                  <div class="kv-val">
+                    <span class="pill" id="pos-exposure">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="kv">
+                <div class="kv-row">
+                  <div class="kv-key">Cash Remaining</div>
+                  <div class="kv-val" id="pos-cash">$0</div>
+                </div>
+                <div class="kv-row">
+                  <div class="kv-key">Connection</div>
+                  <div class="kv-val" id="conn-status">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Snapshot -->
+          <div class="card span-2">
+            <div class="card-header">
+              <div class="card-title">Account Snapshot</div>
+              <div class="card-sub">Cash-only mode (no margin)</div>
+            </div>
+            <div class="card-body">
+              <div class="snapshot">
+                <div class="snap">
+                  <div class="snap-label">Cash</div>
+                  <div class="snap-value" id="snap-cash">$0</div>
+                </div>
+                <div class="snap">
+                  <div class="snap-label">Equity</div>
+                  <div class="snap-value" id="snap-equity">$0</div>
+                </div>
+                <div class="snap">
+                  <div class="snap-label">Signal</div>
+                  <div class="snap-value" id="snap-signal">—</div>
+                </div>
+                <div class="snap">
+                  <div class="snap-label">Last Decision</div>
+                  <div class="snap-value" id="snap-last">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Engine Control -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Engine Control</div>
+              <div class="card-sub">Daily scheduler</div>
+            </div>
+            <div class="card-body">
+              <div class="engine-box">
+                <div class="engine-row">
+                  <div class="engine-label">Status</div>
+                  <div class="engine-value">
+                    <span class="dot" id="engine-dot-2"></span>
+                    <span id="engine-status-text">INACTIVE</span>
+                  </div>
+                </div>
+                <div class="engine-row">
+                  <div class="engine-label">Next Run</div>
+                  <div class="engine-value" id="engine-next-run">—</div>
+                </div>
+                <div class="engine-row">
+                  <div class="engine-label">Signal</div>
+                  <div class="engine-value" id="engine-signal">—</div>
+                </div>
+
+                <div class="engine-actions">
+                  <button class="btn" id="btn-start">Start Engine</button>
+                  <button class="btn danger" id="btn-stop">Stop Engine</button>
+                </div>
+
+                <div class="small-muted" id="engine-note">
+                  Engine executes automatically once per day at your configured time.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION: PORTFOLIO -->
+      <section id="section-portfolio" class="section hidden">
+        <div class="page-title">Portfolio</div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Positions</div>
+            <div class="card-sub">Current holdings</div>
+          </div>
+          <div class="card-body">
+            <table class="table">
+              <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Size</th>
+                <th>Avg Price</th>
+              </tr>
+              </thead>
+              <tbody id="positions-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card mt">
+          <div class="card-header">
+            <div class="card-title">Trades</div>
+            <div class="card-sub">Latest activity</div>
+          </div>
+          <div class="card-body">
+            <table class="table">
+              <thead>
+              <tr>
+                <th>Time</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Qty</th>
+                <th>Price</th>
+              </tr>
+              </thead>
+              <tbody id="trades-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: CONNECTIONS -->
+      <section id="section-connections" class="section hidden">
+        <div class="page-title">Connections</div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Interactive Brokers (IBKR)</div>
+            <div class="card-sub">Connect via TWS or IB Gateway</div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Mode</label>
+                <select id="ibkr-mode">
+                  <option value="paper_api">Paper</option>
+                  <option value="live">Live</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Host</label>
+                <input id="ibkr-host" type="text" value="127.0.0.1" />
+              </div>
+              <div class="field">
+                <label>Port</label>
+                <input id="ibkr-port" type="number" value="7497" />
+              </div>
+              <div class="field">
+                <label>Client ID</label>
+                <input id="ibkr-client-id" type="number" value="7" />
+              </div>
+              <div class="field span-2">
+                <label>Account ID (optional)</label>
+                <input id="ibkr-account" type="text" placeholder="DU1234567 (optional)" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn ghost" id="btn-save-conn">Save</button>
+              <button class="btn" id="btn-test-conn">Test Connection</button>
+            </div>
+
+            <div class="small-muted" id="conn-hint">
+              For LIVE: use port 7496 (commonly). For PAPER: 7497 (commonly). Your TWS/Gateway must be running and API enabled.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: ENGINE -->
+      <section id="section-engine" class="section hidden">
+        <div class="page-title">Engine Control</div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">KAQT Engine</div>
+            <div class="card-sub">Daily execution + live equity curve</div>
+          </div>
+          <div class="card-body">
+            <div class="kv">
+              <div class="kv-row">
+                <div class="kv-key">Engine</div>
+                <div class="kv-val" id="engine-status-2">—</div>
+              </div>
+              <div class="kv-row">
+                <div class="kv-key">Signal</div>
+                <div class="kv-val" id="engine-signal-2">—</div>
+              </div>
+              <div class="kv-row">
+                <div class="kv-key">Last Decision</div>
+                <div class="kv-val" id="engine-last-2">—</div>
+              </div>
+              <div class="kv-row">
+                <div class="kv-key">Next Run</div>
+                <div class="kv-val" id="engine-next-2">—</div>
+              </div>
+            </div>
+
+            <div class="engine-actions">
+              <button class="btn" id="btn-start-2">Start Engine</button>
+              <button class="btn danger" id="btn-stop-2">Stop Engine</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: SETTINGS -->
+      <section id="section-settings" class="section hidden">
+        <div class="page-title">Settings</div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Scheduler Time</div>
+            <div class="card-sub">Local machine time</div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Hour (0–23)</label>
+                <input id="sched-hour" type="number" min="0" max="23" value="16"/>
+              </div>
+              <div class="field">
+                <label>Minute (0–59)</label>
+                <input id="sched-minute" type="number" min="0" max="59" value="5"/>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn" id="btn-save-sched">Save Scheduler</button>
+            </div>
+            <div class="small-muted">
+              For production, keep this aligned with your strategy’s daily decision time.
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
